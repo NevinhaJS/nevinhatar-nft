@@ -1,0 +1,11 @@
+{
+  "name": "nevinhatar-nft-presales",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:NevinhaJS/nevinhatar-nft.git",
+  "author": "Clóvis Neto <clovisdasilvaneto@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.4.1"
+  }
+}
