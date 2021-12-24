@@ -34,4 +34,96 @@ contract('Nevinhatar', (accounts) => {
 
     assert.equal(tokenURI, `${baseURI}2.json`);
   })
+
+  it('should not allow the mint if the presale date is not opened', async () => {
+    const contract = await Nevinhatar.new('ipfs://nevinhatar-hash/', 20);
+    const date = new Date()
+    const startDate = date.setMinutes(date.getMinutes() + 10);
+    const value = web3.utils.toWei('0.02', 'ether')
+    let error;
+    
+    await contract.setPreSaleStartDate(Math.floor(startDate / 1000));
+
+    try {
+      await contract.mint(accounts[1], 1, {from: accounts[1], value});
+    }catch(err) {
+      error = err;
+    }
+
+    assert.equal(error?.message?.includes("Pre-sale not started."), true);
+  })
+
+  it('should not allow the mint if the ether value is less the expected value', async () => {
+    const contract = await Nevinhatar.new('ipfs://nevinhatar-hash/', 20);
+    const [startDateInstance, endDateInstance] = [new Date(), new Date()]
+    const startDate = startDateInstance.setMinutes(startDateInstance.getMinutes() - 1)
+    const endDate = endDateInstance.setMinutes(endDateInstance.getMinutes() + 10)
+    const value = web3.utils.toWei('0.02', 'ether')
+    let error;
+    
+    await contract.setPreSaleStartDate(Math.floor(startDate / 1000));
+    await contract.setPreSaleEndDate(Math.floor(endDate / 1000));
+
+    try {
+      await contract.mint(accounts[1], 2, {from: accounts[1], value});
+    }catch(err) {
+      error = err;
+    }
+
+    assert.equal(error?.message?.includes("Not enough ether provided on pre sale"), true);
+  })
+
+  it('should not allow the mint if the ether value is less the expected value', async () => {
+    const contract = await Nevinhatar.new('ipfs://nevinhatar-hash/', 20);
+    const [startDateInstance, endDateInstance] = [new Date(), new Date()]
+    const startDate = startDateInstance.setMinutes(startDateInstance.getMinutes() - 1)
+    const endDate = endDateInstance.setMinutes(endDateInstance.getMinutes() - 10)
+    const value = web3.utils.toWei('0.04', 'ether')
+    let error;
+    
+    await contract.setPreSaleStartDate(Math.floor(startDate / 1000));
+    await contract.setPreSaleEndDate(Math.floor(endDate / 1000));
+
+    try {
+      await contract.mint(accounts[1], 1, {from: accounts[1], value});
+    }catch(err) {
+      error = err;
+    }
+
+    assert.equal(error?.message?.includes("Not enough ether provided on public sale"), true);
+  })
+
+  it('should allow buying a token in a pre-sale price', async () => {
+    const contract = await Nevinhatar.new('ipfs://nevinhatar-hash/', 20);
+    const [startDateInstance, endDateInstance] = [new Date(), new Date()]
+    const startDate = startDateInstance.setMinutes(startDateInstance.getMinutes() - 1)
+    const endDate = endDateInstance.setMinutes(endDateInstance.getMinutes() + 10)
+    const value = web3.utils.toWei('0.02', 'ether')
+    
+    await contract.setPreSaleStartDate(Math.floor(startDate / 1000));
+    await contract.setPreSaleEndDate(Math.floor(endDate / 1000));
+    
+    await contract.mint(accounts[2], 1, {from: accounts[2], value});
+
+    const balance = (await contract.balanceOf.call(accounts[2])).toNumber();
+
+    assert.equal(balance, 1);
+  })
+
+  it('should allow buying a token in a public sale price', async () => {
+    const contract = await Nevinhatar.new('ipfs://nevinhatar-hash/', 20);
+    const [startDateInstance, endDateInstance] = [new Date(), new Date()]
+    const startDate = startDateInstance.setMinutes(startDateInstance.getMinutes() - 1)
+    const endDate = endDateInstance.setMinutes(endDateInstance.getMinutes() - 10)
+    const value = web3.utils.toWei('0.06', 'ether')
+    
+    await contract.setPreSaleStartDate(Math.floor(startDate / 1000));
+    await contract.setPreSaleEndDate(Math.floor(endDate / 1000));
+    
+    await contract.mint(accounts[2], 1, {from: accounts[2], value});
+
+    const balance = (await contract.balanceOf.call(accounts[2])).toNumber();
+
+    assert.equal(balance, 1);
+  })
 })
